@@ -53,7 +53,8 @@
 			       &key
 			       port
 			       headers
-			       data)
+			       data
+			       ssl)
   (let (host-orig
 	port-orig
 	proxy-p
@@ -114,7 +115,7 @@
 		    (format req "~A: ~A~%" (string-capitalize key) val)))))
 	    (format req "~%")))
     (junk-message "connecting to ~A ..." host)
-    (setq http-stream (connect host port))
+    (setq http-stream (connect host port :ssl ssl))
     (format http-stream "~A" request)
     (if data
 	(let (is os)
@@ -222,7 +223,8 @@
 		    "POST"
 		  (if head
 		      "HEAD"
-		    "GET"))))
+		    "GET")))
+	ssl)
     (when no-cache
       (push (cons "pragma" "no-cache") headers))
     (when referer
@@ -230,14 +232,19 @@
     (multiple-value-bind (proto host file anchor port)
 	(junk-http-url-study url)
       (let (stream)
-	(unless (string= proto "http")
-	  (junk-error "Protocol is not http: ~A" url))
+	(cond ((string= proto "http")
+	       nil)
+	      ((string= proto "https")
+	       (setq ssl t))
+	      (t
+	       (junk-error "Protocol is not http or https: ~A" url)))
 	(setq stream (junk-http-request-send host
 					     file
 					     method
 					     :port port
 					     :headers headers
-					     :data post))
+					     :data post
+					     :ssl ssl))
 	(junk-http-response-get stream)))))
 
 ;;;

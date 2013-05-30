@@ -27,7 +27,7 @@
 (defvar *pop3-debug* nil)
 (defvar *pop3-stream-output* nil)
 
-(defun pop3-open (server &optional (port *pop3-port*))
+(defun pop3-open (server &optional (port *pop3-port*) (ssl nil))
   (unless port
     (setq port *pop3-port*))
   (let (return)
@@ -38,7 +38,7 @@
 		(log-init *pop3-buffer-output*)))
       (setq *pop3-stream-output* nil))
     (message "Connecting to server: ~A" server)
-    (setq stream (connect server port))
+    (setq stream (connect server port :ssl ssl))
     (setq return (pop3-read-line stream))
     (if (pop3-ok-p return)
 	(message "~A" return)

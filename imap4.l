@@ -115,11 +115,11 @@
 	(setq *imap4-stream-output* (make-buffer-stream *imap4-buffer-output*))
 	))))
 
-(defun imap4-open (server &optional port timeout)
+(defun imap4-open (server &optional port timeout &key ssl)
   (let (return sock stream)
     (imap4-init)
     (message "Connecting to server: ~A" server)
-    (setq sock (connect server (or port *imap4-port*)))
+    (setq sock (connect server (or port *imap4-port*) :ssl ssl))
     (setq stream (imapstream-create sock *imap4-status-connected* 0))
     (imap4-socket-stream-set-timeout stream (or timeout *imap4-socket-stream-timeout*))
     (setq return (imap4-read-line stream))

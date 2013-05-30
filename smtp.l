@@ -58,9 +58,9 @@
 	    (pushnew rcpt rcpt-list :test #'equal)))))
     (values sender (nreverse rcpt-list))))
 
-(defun smtp-connect (server &key port auth user pass realm)
+(defun smtp-connect (server &key port auth user pass realm ssl)
   (let (s)
-    (setq s (smtp-open server port))
+    (setq s (smtp-open server port :ssl ssl))
     (multiple-value-bind (flag return)
 	(smtp-login s auth user pass realm)
       (values s flag return))))
@@ -120,7 +120,7 @@
       (format stream ".~%")))
   (smtp-return stream *smtp-answer-ok*))
 
-(defun smtp-send-buffer (server &key port auth user pass realm show msgid-add)
+(defun smtp-send-buffer (server &key port auth user pass realm show msgid-add ssl)
   (let (s
 	header
 	rcpt-list
@@ -138,7 +138,8 @@
 		      :auth auth
 		      :user user
 		      :pass pass
-		      :realm realm)
+		      :realm realm
+		      :ssl ssl)
       (if flag
 	  (progn
 	    (setq s stream)
@@ -215,7 +216,7 @@
 	       (return-from smtp-return (values nil return)))
 	      )))))
 
-(defun smtp-open (server &optional port)
+(defun smtp-open (server &optional port &key ssl)
   (let (stream)
     (if *smtp-debug*
 	(when (or (not *smtp-stream-output*)
@@ -223,8 +224,8 @@
 	  (setq *smtp-stream-output*
 		(log-init *smtp-buffer-output*)))
       (setq *smtp-stream-output* nil))
-    (message "Connecting to server: ~A" server)
-    (setq stream (connect server (or port *smtp-port*)))
+    (message "Connecting to server: ~A:~D ~A" server port (if ssl "with ssl" ""))
+    (setq stream (connect server (or port *smtp-port*) :ssl ssl))
     (multiple-value-bind (flag return)
 	(smtp-return stream *smtp-answer-connected*)
       (unless flag
