@@ -24,6 +24,7 @@
 
 (defvar *junk-http-version* "1.0")
 (defvar *junk-http-port* 80)
+(defvar *junk-https-port* 443)
 (defvar *junk-http-accept-language* "ja,en")
 
 (defvar *junk-http-prog-version* *prog-version*)
@@ -81,7 +82,7 @@
       (setq port-orig port)
       (setq port *junk-http-proxy-port*)
       (setq proxy-p t))
-    (setq port (or port *junk-http-port*))
+    (setq port (or port (if ssl *junk-https-port* *junk-http-port*)))
     (setq request
 	  (with-output-to-string (req)
 	    (format req "~A ~A HTTP/~A~%" method file *junk-http-version*)
